@@ -1,0 +1,1 @@
+https://nicolashcodes.wordpress.com/2015/07/14/truc-18-un-systeme-crud-angular-mysql-php-fonctionnel-lecture-ecriture-miseajour-suppression/

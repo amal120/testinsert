@@ -1,0 +1,197 @@
+<html>
+<head>
+<title>Produit</title>
+</head>
+<script type="text/javascript" src="angular.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<!-- Include main CSS -->
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+<body >
+<h1>Produit info</h1><hr>
+<div ng-app= "myApp" ng-controller ="ctrCrud" ng-init="moyenne=0">
+
+
+
+<table border="0">
+<tr><td>Code:</td><td><input type="text" ng-model ="codeproduit"></td></tr>
+<tr><td>Libelle:</td><td><input type="text" ng-model ="libelle"></td></tr>
+<tr><td>Prix revient:</td><td><input type="text" ng-model ="prixrevient"></td></tr>
+<tr><td>Prix vente:</td><td><input type="text" ng-model ="prixvente"></td></tr>
+<tr><td>TVA:</td><td><input type="text" ng-model ="tva"></td></tr>
+<tr><td>FODEC:</td><td><input type="text" ng-model ="fodec"></td></tr>
+<tr><td>Stock:</td><td><input type="text" ng-model ="Stock"></td></tr>
+<tr><td>Stock Alerte:</td><td><input type="text" ng-model ="stockalerte"></td></tr>
+<tr><td>Piece:</td><td><input type="text" ng-model ="piece"></td></tr>
+
+
+<tr>
+<td><button class="btn btn-warning" ng-click ="insertdata()" >Add Produit</button></td>
+<td><button class="btn btn-warning" ng-click ="updatedata()" >Update Produit</button>
+</td>
+
+</tr>
+
+ 
+</table>
+
+<table>
+<thead><tH>Code</tH> <tH>Libelle</tH> <tH>prix revient</tH> <tH>prix vente</tH> <tH>tva</tH> <tH>fodec</tH> <tH>stock</tH> <tH>Stock Alerte</tH><tH>piece</tH>
+<tH></th></tr>
+</thead>
+ <tbody ng-init="getAll()">
+<tr ng-repeat="detail in details| filter:search">
+
+<td>
+<span>{{detail.codeproduit}}</span></td>
+<td>{{detail.libelle}}</td>
+<td>{{detail.prixrevient}}</td>
+<td>{{detail.prixvente}}</td>
+<td>{{detail.tva}}</td>
+<td>{{detail.fodec}}</td>
+<td>{{detail.stock}}</td>
+<td>{{detail.stockalerte}}</td>
+<td>{{detail.piece}}</td>
+
+
+<td>
+<button class="btn btn-warning" ng-click="edit(detail.codeproduit)" title="Edit"><span class="glyphicon glyphicon-edit"></span></button>
+</td>
+<td>
+<button class="btn btn-danger" ng-click="delete(detail.codeproduit.id)" title="Delete"><span class="glyphicon glyphicon-trash"></span></button>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+
+
+
+</div>
+<script>
+var myApp = angular.module("myApp", []);
+myApp.controller('ctrCrud',['$scope','$http', function($scope,$http) {
+
+$scope.moy = function() 
+{
+   result = (parseInt($scope.n1)*parseInt($scope.c1)) + (parseInt($scope.n2)*parseInt($scope.c2)) + (parseInt($scope.n3)*parseInt($scope.c3));
+   result2 =parseInt($scope.c1) + parseInt($scope.c2)+ parseInt($scope.c3);
+   $scope.moyenne = result / result2;
+   if($scope.moyenne>=10)
+         $scope.observation="admis";
+   else
+         $scope.observation="redouble";
+};
+
+$scope.getAll = function(){
+  
+    $http.post("listepr.php").success(function(data){
+        $scope.details = data;
+    });
+}
+
+
+$scope.insertdata =function() {
+$http.post("addpr.php",
+{
+  'codeproduit' :$scope.codeproduit,
+  'libelle' :$scope.libelle,
+  'prixrevient':$scope.prixrevient,
+  'prixvente':$scope.prixvente,
+  'tva':$scope.tva,
+  'fodec':$scope.fodec,
+  'stock':$scope.stock,
+  'stockalerte':$scope.stockalerte,
+  'piece':$scope.piece
+  
+
+}
+).success(function (data, status, headers, config) {
+          $scope.getALL();
+        })
+ 
+        .error(function(data, status, headers, config){
+            
+        });
+}
+$scope.updatedata =function() {
+$http.post("updatepr.php",
+  
+{
+   'codeproduit' :$scope.codeproduit,
+  'libelle' :$scope.libelle,
+  'prixrevient':$scope.prixrevient,
+  'prixvente':$scope.prixvente,
+  'tva':$scope.tva,
+  'fodec':$scope.fodec,
+  'stock':$scope.stock,
+  'stockalerte':$scope.stockalerte,
+  'piece':$scope.piece
+}
+).success(function (data, status, headers, config) {
+          $scope.getALL();
+        })
+ 
+        .error(function(data, status, headers, config){
+            
+        });
+}
+
+
+
+
+ $scope.edit = function(index) { 
+ $scope.upd_std = true; 
+  $scope.ins_std = false; 
+
+      
+      $http.post("editpr.php", 
+         {
+                'codeproduit'     : index
+            }
+            
+        )      
+        .success(function (data, status, headers, config) {    
+            //alert(data[0]["prod_name"]);
+            $scope.codeproduit              =   data[0]["codeproduit"];
+            $scope.libelle             =   data[0]["libelle"];
+            $scope.prixrevient           =   data[0]["prixrevient"];
+            $scope.prixvente               =   data[0]["prixvente"];
+            $scope.tva               =   data[0]["tva"];
+            $scope.fodec               =   data[0]["fodec"];
+            $scope.stock               =   data[0]["stock"];
+            $scope.stockalerte              =   data[0]["stockalerte"];
+            $scope.piece               =   data[0]["piece"];
+
+        })
+
+        .error(function(data, status, headers, config){
+           
+        });
+    }
+     
+     
+    $scope.delete = function(index) {  
+     
+      $http.post("delpr.php", 
+            {
+                'codeproduit'     : index
+            }
+        )      
+        .success(function (data, status, headers, config) {    
+             $scope.getAll();
+        })
+
+        .error(function(data, status, headers, config){
+           
+        });
+    }
+
+ }]);   
+</script>
+</body>
+</html>
+
+
+

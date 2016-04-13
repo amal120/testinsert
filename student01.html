@@ -1,0 +1,177 @@
+<html>
+<head>
+<title>Crud  Anglar</title>
+</head>
+<script type="text/javascript" src="angular.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<!-- Include main CSS -->
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+<body >
+<h1>Student info</h1><hr>
+<div ng-app= "myApp" ng-controller ="ctrCrud" ng-init="moyenne=0">
+
+
+
+<table border="0">
+<tr><td>Matricule:</td><td><input type="text" ng-model ="mat"></td></tr>
+<tr><td>Nom:</td><td><input type="text" ng-model ="nom"></td></tr>
+<tr><td>Classe:</td><td><input type="text" ng-model ="classe"></td></tr>
+<tr><td>Note 1:</td><td><input type="text" ng-model ="n1" ng-change="moy()" ></td><td>Coef 1:</td><td><input type="text" ng-model ="c1" ng-change="moy()"></td></tr>
+<tr><td>Note 2:</td><td><input type="text" ng-model ="n2" ng-change="moy()" ></td><td>Coef 2:</td><td><input type="text" ng-model ="c2" ng-change="moy()" ></td>
+</tr>
+<tr><td>Note 3:</td><td><input type="text" ng-model ="n3" ng-change="moy()" ></td><td>Coef 3:</td><td><input type="text" ng-model ="c3" ng-change="moy()"></td></tr>
+<tr><td>Moyenne:</td><td>{{moyenne}}</td><td>Observation:</td><td>{{observation}}</td></tr>
+<tr>
+<td><button class="btn btn-warning" ng-click ="add_student()" >Add Student</button></td>
+<td><button class="btn btn-warning" ng-click ="update_student()" >Edit Student</button></td>
+</tr>
+</table>
+<table>
+<thead><tH>Matricule</tH><tH>Student Name</tH><tH>Classe</tH><tH>Note 1</tH><tH>Coef 1</tH><tH>Note 2</tH><tH>Coef 2</tH><tH>Note 3</tH><tH>Coef 3</tH><tH></th>
+<tH></th></tr>
+</thead>
+ <tbody ng-init="getAll()">
+<tr ng-repeat="detail in details| filter:search">
+
+<td>
+<span>{{detail.mat}}</span></td>
+<td>{{detail.nom}}</td>
+<td>{{detail.classe}}</td>
+<td>{{detail.n1}}</td>
+<td>{{detail.c2}}</td>
+<td>{{detail.n2}}</td>
+<td>{{detail.c2}}</td>
+<td>{{detail.n3}}</td>
+<td>{{detail.c3}}</td>
+ <td><a href="" ng-click="edit_student(detail.mat)">Edit</a></td><td> <a href="" ng-click="delete_student(detail.mat.id)">Delete</a></td>
+
+</tr>
+</tbody>
+</table>
+
+
+
+
+</div>
+<script>
+var myApp = angular.module("myApp", []);
+myApp.controller('ctrCrud',['$scope','$http', function($scope,$http) {
+
+$scope.moy = function() 
+{
+   result = (parseInt($scope.n1)*parseInt($scope.c1)) + (parseInt($scope.n2)*parseInt($scope.c2)) + (parseInt($scope.n3)*parseInt($scope.c3));
+   result2 =parseInt($scope.c1) + parseInt($scope.c2)+ parseInt($scope.c3);
+   $scope.moyenne = result / result2;
+   if($scope.moyenne>=10)
+         $scope.observation="admis";
+   else
+         $scope.observation="redouble";
+};
+
+$scope.getAll = function(){
+  
+    $http.post('db.php?action=get_student').success(function(data){
+        $scope.details = data;
+    });
+}
+
+
+$scope.add_student =function() {
+    $http.post('db.php?action=add_student', 
+{
+  'mat' :$scope.mat,
+  'nom' :$scope.nom,
+  'classe':$scope.classe,
+  'n1':$scope.n1,
+  'n2':$scope.n2,
+  'n3':$scope.n3,
+  'c1':$scope.c1,
+  'c2':$scope.c2,
+  'c3':$scope.c3
+}
+).success(function (data, status, headers, config) {
+          $scope.getALL();
+        })
+ 
+        .error(function(data, status, headers, config){
+            
+        });
+}
+
+$scope.update_student = function() {
+        $http.post('db.php?action=update_student', 
+        {
+          'mat' :$scope.mat,
+          'nom' :$scope.nom,
+          'classe':$scope.classe,
+          'n1':$scope.n1,
+          'n2':$scope.n2,
+          'n3':$scope.n3,
+          'c1':$scope.c1,
+          'c2':$scope.c2,
+          'c3':$scope.c3
+         }
+     ).success(function (data, status, headers, config) {
+                  $scope.getAll();
+                })
+                .error(function(data, status, headers, config){
+                   
+                });
+    }
+    $scope.delete_student = function(index) {  
+     
+      $http.post('db.php?action=delete_student', 
+            {
+                'student_index'     : index
+            }
+        )      
+        .success(function (data, status, headers, config) {    
+             $scope.getAll();
+        })
+
+        .error(function(data, status, headers, config){
+           
+        });
+    }
+
+    /** fucntion to edit product details from list of product referencing php **/
+
+    $scope.edit_student = function(index) {  
+      $scope.update_prod = true;
+      $scope.add_prod = false;
+      $http.post('db.php?action=edit_student', 
+            {
+                'student_index'     : index
+            }
+        )      
+        .success(function (data, status, headers, config) {    
+            //alert(data[0]["prod_name"]);
+            $scope.mat              =   data[0]["mat"];
+            $scope.nom              =   data[0]["nom"];
+            $scope.classe           =   data[0]["classe"];
+            $scope.n1               =   data[0]["n1"];
+            $scope.c1               =   data[0]["c1"];
+            $scope.n2               =   data[0]["n2"];
+            $scope.c2               =   data[0]["c2"];
+            $scope.n3               =   data[0]["n3"];
+            $scope.c3               =   data[0]["c3"];
+
+        })
+
+        .error(function(data, status, headers, config){
+           
+        });
+    }
+
+
+
+}]);
+
+
+</script
+</body>
+</html>
+
+
+

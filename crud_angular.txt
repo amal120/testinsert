@@ -1,0 +1,310 @@
+<html ng-app="App">
+    <head>
+        <meta charset="utf-8" />
+        <title>Authentification Mysql avec AngularJs.</title>
+ 
+        <!-- JQUERY ET BOOTSRAP -->
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+        <!-- Custom styles for this template -->
+        <link href="sticky-footer.css" rel="stylesheet">
+ 
+        <!-- ANGULAR -->
+        <script src='bower_components/angular/angular.min.js'></script>
+ 
+        <!-- UI BOOTSTRAP -->
+        <script src='bower_components/angular-bootstrap/ui-bootstrap.min.js'></script>
+        <script src='bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js'></script>
+ 
+    </head>
+ 
+    <body ng-controller="MainCtrl">
+        <div class="container-fluid">
+            <nav class="navbar navbar-inverse">
+              <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="#">Exo 48 Auth</a>
+                    </div>
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="nav navbar-nav navbar-right">
+                            <div class="form-group">
+                                <form>
+                                </form>
+                            </div>
+                        </ul>
+                    </div><!-- /.navbar-collapse -->
+                </div><!-- /.container-fluid -->
+            </nav>
+ 
+            <div class="container">
+                <form class="form-signin">
+                    <h2 class="form-signin-heading">Identifiez vous {{test}}</h2>
+                    <label for="inputEmail" class="sr-only">Email</label>
+                    <input ng-model="email" type="email" class="form-control" placeholder="Email" required autofocus>
+                    <label for="inputPassword" class="sr-only">Mot de Passe</label>
+                    <input ng-model="motdepasseATester" class="form-control" placeholder="Mot de Passe" required>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" value="remember-me"> Se souvenir de moi
+                      </label>
+                    </div>
+                    <button ng-click="identificationUtilisateur()" class="btn btn-lg btn-primary btn-block" type="submit">S'identifier sur Mysql avec Php.</button>
+ 
+                    <div ng-if="informationLogin" class="alert alert-warning" role="alert"> {{informationLogin}}, bienvenue {{prenom}} {{nom}}, votre id est {{idUtilisateur}}</div>
+                </form>
+ 
+            </div>
+ 
+            <footer class="footer">
+              <div class="container">
+                <p class="text-muted">Place sticky footer content here.</p>
+              </div>
+            </footer>
+ 
+        <!-- FIND DE DIV GLOBALE FLUID BOOSTRAP POUR LES PHONES -->
+        </div>
+        <script src="app.js"> </script>
+    </body>
+</html>
+
+
+Controller
+
+var app = angular.module('App', ['ui.bootstrap'])
+ 
+app.controller('MainCtrl', function($scope,$http,stockeIdUtilisateur) {
+ 
+    $scope.identificationUtilisateur = function(){
+        /* Test puis validation du couple login-mot de passe */
+        $http.post('filtrer.php?action=get_login',
+            {
+                'email' : $scope.email,
+                'motdepasseATester' : $scope.motdepasseATester,
+            }
+            ).success(function (data, status, headers, config) {
+ 
+                /* Si le Login est raté : */
+                if (data == "false"){
+                    $scope.informationLogin = "Login raté";
+ 
+                }
+ 
+                /* Si le Login est réussi : */
+                else{
+                    $scope.informationLogin = "Login réussi" ;
+                    $scope.nom  = data.nom;
+                    $scope.prenom  = data.prenom;
+                    /* console.log(data.id); */
+                    stockeIdUtilisateur.setIdUtilisateur(data.id); // Stocke l id dans le service angular pour  que l'application sache qui est l'utilisateur
+                    $scope.idUtilisateur = stockeIdUtilisateur.getIdUtilisateur();
+                }
+            }).error(function(data, status, headers, config){
+                alert('pas de connexion vers le serveur');
+              });
+    }
+})
+ 
+/* SERVICE QUI STOCKE L ID  UTILISATEUR APRES LE LOGIN, CEST UTILE POUR UNE APPLICATION MULTI UTILISATEUR DE SAVOIR QUI EST LOGGE*/
+.service('stockeIdUtilisateur', function() {
+    var Idutilisateur = '';
+ 
+    return {
+        getIdUtilisateur: function() {
+            return IdUtilisateur;
+        },
+        setIdUtilisateur: function(value) {
+            IdUtilisateur = value;
+        }
+    };
+})
+
+
+
+Le fichier PHP filtrer.php va requêter sur la base Mysql pour savoir si le couple email/motdepasse est valable. Si oui, il imprime un objet Json dans le navigateur contenant toutes les informations de l’utilisateur, qui est récupéré par AngularJs dans la fonction de rappel .success dans l’objet data.
+De ce fait, angularJs peut récupèrer le nom de l’utilisateur en tapant data.nom, mais ça c’est seulement si il y a eu succès, dans le cas contraire, c’est un false qui est récupéré par angularJs
+
+<?php
+ 
+include('connexionConfig.php');
+error_reporting(E_ALL ^ E_NOTICE); // important pour ne pas afficher les notice PHP sans cela le script ne marche pas.
+ 
+/**  Switch Case pour récupérer la l'action demandée par le controleur  Angular **/
+ 
+switch($_GET['action'])  {
+    case 'get_login' :
+            get_login();
+            break;
+}
+ 
+/*Function qui teste le login: */
+ function get_login() {  
+ 
+    /* Reception des données login a tester en base de donnée */
+    $data = json_decode(file_get_contents("php://input"));
+    $email = $data->email;
+    $motdepasseATester = $data->motdepasseATester;
+ 
+    /* Recherche de l'email en base de données. */
+    $q = "SELECT * from utilisateurs WHERE utilisateurs.email = '" .$email."'";
+    $qry = mysql_query($q);
+ 
+     /* Mets le resultat du Login dans un tableau (On recupère l id de l utilisateur). */
+     while($rows = mysql_fetch_array($qry))
+        {
+        $tab= array(
+                    "id"        => $rows['id'],
+                    "email"     => $rows['email'],
+                    "motDePasse"=> $rows['motDePasse'],
+                    "nom"       => $rows['nom'],
+                    "prenom"    => $rows['prenom']
+                    );
+        }
+ 
+      /*  Teste si le password écrit par l'utilisateur est egal au password dans la base de données. */
+        if($motdepasseATester==$tab[motDePasse]){
+            /* renvoie les variables id et email et mot de passe de l'utilisateur au script angularJs*/
+            print_r(json_encode($tab));
+        }
+ 
+        else {
+             /* Afficher false au script angularJs qui va afficher une erreur de login */
+            echo('false');
+        }
+    exit(); 
+ 
+}
+ 
+?>
+
+
+Ne pas oublier ce petit fichier connexionConfig.php qui permet la connexion à Mysql :
+
+<?php
+ 
+  /****** Database Details *********/
+ 
+    $host      = "localhost";
+    $user      = "root";
+    $pass      = "secret";
+    $database  = "truc48";
+    $con       = mysql_connect($host,$user,$pass);
+ 
+    if (!$con) {
+        die('Could not connect: ' . mysql_error());
+    }
+ 
+    //echo 'Connected successfully'; 
+ 
+    mysql_select_db($database,$con);  
+ 
+    /*******************************/
+ 
+?>
+
+
+
+Un premier petit exercice fait en 1h30 heures avec ngMap., un module angularJs pour google map.
+
+L’app permet d’affecter des adresses à des vendeurs en prospection(Ensuite, on peut passer le tableau de json à un calendrier, mais je ne le fais pas ici). A tester ici .
+
+Les markers apparaissent lorsque le tableau d’adresses JSON $scope.liste est peuplé . On peut donc envisager l’inverse -> Afficher les markers après un chargement $http de $scope.liste. Fonctionnellement parlant, on peut par exemple envisager d’afficher les markers en fonction de la date du jour et de l’id utilisateur du Vendeur dans son téléphone portable. ce qu’il faudrait, c’est pouvoir passer les adresses à google navigation, lorsque le bouton du prospect a été cliqué.
+
+Pour installer ng-Map, utiliser Bower qui installe automatiquement toutes les dépendances.
+
+var app = angular.module('App', ['ngMap'])
+ 
+app.controller('MainCtrl', function($scope) {
+    $scope.adresse="";
+    $scope.liste = [];
+    $scope.nomVendeur = "";
+    $scope.vendeurs = [];
+ 
+    /* Initialisation de la date et de l'heure du jour en cours */
+    var date = new Date();
+    var d = date.getDate();
+    d = ("0" + d).slice(-2)
+    var m = date.getMonth();
+    m = (m+1);
+    m = ("0" + m).slice(-2)
+    var y = date.getFullYear();
+ 
+    $scope.date  =  d+'-'+m+'-'+y;
+ 
+    /* Cherche une adresse dans googlemap et l'ajoute à la liste*/
+    $scope.chercherAdresse = function(adresse){
+        if(adresse){
+            var x = adresse;
+            $scope.adresseOk = x;
+        }
+        else{
+            var x = $scope.adresse;
+            $scope.adresseOk = x;
+            $scope.liste.push({"Adresse":x});
+        }
+    }
+ 
+    /* Affecte la liste des villes à un vendeur */
+    $scope.affecterListe = function(){
+        var x = angular.copy($scope.nomVendeur);
+        var z = angular.copy($scope.liste); // Angular Copy debinde le z de $scope.liste
+        $scope.vendeurs.push({"nom":x,"liste":z});
+ 
+    }
+ 
+    /* Supprimer une adressse */
+    $scope.s=function(index){
+        $scope.liste.splice(index,1);
+    }
+ 
+});
+
+
+<!DOCTYPE html>
+<html ng-app="App">
+    <head>
+        <meta charset="utf-8" />
+        <title>Exercice Google Maps.</title>
+        <script src='bower_components/angular/angular.min.js'></script>
+        <script src="https://maps.google.com/maps/api/js?libraries=placeses,visualization,drawing,geometry,places"></script>
+        <script src="bower_components/ngmap/build/scripts/ng-map.min.js"></script>
+    </head>
+     
+    <body ng-controller="MainCtrl">
+         
+        <div>
+         
+            <ng-map style="height:100%" center="{{adresseOk}}" zoom="14">
+            <marker ng-repeat="l in liste" position="{{l.Adresse}}" ></marker>
+            </ng-map>
+        </div> 
+     
+        <div class ="div">
+            <h1>Trouver une adresse </h1>
+            <input ng-model="adresse"placeholder="Entrez l'adresse"></input> 
+            <button ng-click="chercherAdresse()">Chercher</button><br><br>
+            Liste des Adresses au {{date}}:<br>
+            <span ng-repeat="l in liste"><button ng-click="chercherAdresse(l.Adresse)">{{l.Adresse| uppercase}}</button>
+            <button ng-click="s($index)">Supprimer</button> <br></span>
+        </div> 
+         
+        <div class ="div">
+            <h1>Affecter la liste au vendeur</h1> :<br>
+            <input ng-model="nomVendeur" placeholder="Entrez le nom du vendeur"></input> 
+            <button ng-click="affecterListe()"> Affecter</button><br>
+            <span ng-repeat="v in vendeurs">{{v.nom| uppercase}}<br>
+                <p><ul ng-repeat="k in v.liste"><button ng-click="chercherAdresse(k.Adresse)">{{k.Adresse| uppercase}}</button><br></ul></p>
+            </span>
+        </div>    
+        <script src="app2.js"> </script>
+             
+    </body>
+ 
+    <style>
+    .angular-google-map-container { height: 400px; }
+    .div{
+    border-style: groove;
+    }
+    </style>
+</html>
+

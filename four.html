@@ -1,0 +1,148 @@
+<html>
+<head>
+<title>Fournisseur</title>
+</head>
+<script type="text/javascript" src="angular.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<!-- Include main CSS -->
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+<body >
+<h1>four info</h1><hr>
+<div ng-app= "myApp" ng-controller ="ctrCrud" ng-init="moyenne=0">
+
+
+
+<table border="0">
+<tr><td>Code:</td><td><input type="text" ng-model ="codefr"></td></tr>
+<tr><td>Nom:</td><td><input type="text" ng-model ="nomfr"></td></tr>
+<tr><td>Prenom:</td><td><input type="text" ng-model ="prenomfr"></td></tr>
+<tr><td>Adresse:</td><td><input type="text" ng-model ="adressefr"></td></tr>
+<tr><td>Ville:</td><td><input type="text" ng-model ="villefr"></td></tr>
+<tr><td>Code postale:</td><td><input type="text" ng-model ="codepostalefr"></td></tr>
+<tr><td>Tel1:</td><td><input type="text" ng-model ="tel"></td></tr>
+<tr><td>Fax:</td><td><input type="text" ng-model ="fax"></td></tr>
+<tr><td>Activite:</td><td><input type="text" ng-model ="activite"></td></tr>
+
+
+<tr>
+<td><button class="btn btn-warning" ng-click ="insertdata()" >Add Fr</button></td>
+<td><button class="btn btn-warning" ng-click ="updatedata()" >Update Fr</button></td>
+
+</tr>
+
+ 
+</table>
+
+<table>
+<thead><tH>Code</tH> <tH>Nom</tH> <tH>Prenom</tH> <tH>Adresse</tH> <tH>Ville</tH> <tH>Code postale</tH> <tH>Tel1</tH> <tH>Fax</tH><tH>Activite</tH>
+<tH></th></tr>
+</thead>
+ <tbody ng-init="getAll()">
+<tr ng-repeat="detail in details| filter:search">
+
+<td>
+<span>{{detail.codefr}}</span></td>
+<td>{{detail.nomfr}}</td>
+<td>{{detail.prenomfr}}</td>
+<td>{{detail.adressefr}}</td>
+<td>{{detail.villefr}}</td>
+<td>{{detail.codepostalefr}}</td>
+<td>{{detail.tel}}</td>
+<td>{{detail.fax}}</td>
+<td>{{detail.activite}}</td>
+
+
+<td>
+<button class="btn btn-warning" ng-click="editInfo(detail)" title="Edit"><span class="glyphicon glyphicon-edit"></span></button>
+</td>
+<td>
+<button class="btn btn-danger" ng-click="deleteInfo(detail)" title="Delete"><span class="glyphicon glyphicon-trash"></span></button>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+
+
+
+</div>
+<script>
+var myApp = angular.module("myApp", []);
+myApp.controller('ctrCrud',['$scope','$http', function($scope,$http) {
+
+$scope.moy = function() 
+{
+   result = (parseInt($scope.n1)*parseInt($scope.c1)) + (parseInt($scope.n2)*parseInt($scope.c2)) + (parseInt($scope.n3)*parseInt($scope.c3));
+   result2 =parseInt($scope.c1) + parseInt($scope.c2)+ parseInt($scope.c3);
+   $scope.moyenne = result / result2;
+   if($scope.moyenne>=10)
+         $scope.observation="admis";
+   else
+         $scope.observation="redouble";
+};
+
+$scope.getAll = function(){
+  
+    $http.post("listefr.php").success(function(data){
+        $scope.details = data;
+    });
+}
+
+
+$scope.insertdata =function() {
+$http.post("addfr.php",
+{
+  'codefr' :$scope.codefr,
+  'nomfr' :$scope.nomfr,
+  'prenomfr':$scope.prenomfr,
+  'adressefr':$scope.adressefr,
+  'villefr':$scope.villefr,
+  'codepostalefr':$scope.codepostalefr,
+  'tel':$scope.tel,
+  'fax':$scope.fax,
+  'activite':$scope.activite
+  
+
+}
+).success(function (data, status, headers, config) {
+          $scope.getALL();
+        })
+ 
+        .error(function(data, status, headers, config){
+            
+        });
+}
+$scope.updatedata =function() {
+$http.post("updatefr.php",
+{
+   'codefr' :$scope.codefr,
+  'nomfr' :$scope.nomfr,
+  'prenomfr':$scope.prenomfr,
+  'adressefr':$scope.adressefr,
+  'villefr':$scope.villefr,
+  'codepostalefr':$scope.codepostalefr,
+  'tel':$scope.tel,
+  'fax':$scope.fax,
+  'activite':$scope.activite
+}
+).success(function (data, status, headers, config) {
+          $scope.getALL();
+        })
+ 
+        .error(function(data, status, headers, config){
+            
+        });
+}
+
+
+}]);
+
+
+</script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,79 @@
+<html>
+<head>
+<title>Crud  Anglar</title>
+</head>
+<script type="text/javascript" src="angular.min.js"></script>
+<body ng-app= "myApp" ng-controller ="CalcController">
+<h1>Student info</h1><hr>
+<div>
+
+
+
+
+<div class="table-responsive">
+<table class="table table-hover">
+<tr>
+<th>Matricule</th>
+<th>Student Name</th>
+<th>Classe</th>
+<th>Note 1</th>
+<th>Coef 1</th>
+<th>Note 2</th>
+<th>Coef 2</th>
+<th>Note 3</th>
+<th>Coef 3</th>
+<th></th>
+<th></th>
+</tr>
+  <tbody ng-init="getInfo()">
+<tr ng-repeat="detail in details" track by $index>
+<td>
+<span>{{detail.mat}}</span></td>
+<td>{{detail.nom}}</td>
+<td>{{detail.classe}}</td>
+<td>{{detail.n1}}</td>
+<td>{{detail.c2}}</td>
+<td>{{detail.n2}}</td>
+<td>{{detail.c2}}</td>
+<td>{{detail.n3}}</td>
+<td>{{detail.c3}}</td>
+
+</tr>
+</tbody>
+</table>
+</div>
+<br/>
+<br/>
+
+
+
+</div>
+
+<script>
+
+
+
+var myApp = angular.module("myApp", []);
+myApp.controller('CalcController',['$scope','$http', function($scope,$http) {
+//  getInfo();
+
+function getInfo(){
+
+// Sending request to EmpDetails.php files 
+$http.get('liste1.php').success(function(data){
+// Stored the returned data into scope 
+
+
+$scope.details = data.records;
+ console.log("Non Ok");
+});
+}
+
+
+}]);
+</script>
+
+</body>
+
+
+</html>
